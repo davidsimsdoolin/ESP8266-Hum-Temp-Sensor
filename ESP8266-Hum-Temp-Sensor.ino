@@ -14,7 +14,7 @@
 AsyncWebServer server(80);
 
 String g_wifi[] = {"",""};
-String interimWifi[] = {"",""};
+String g_interimWifi[] = {"",""};
 String status = "disconnected";
 String connectionText = "";
 bool newConnectionRequest = false;
@@ -168,8 +168,8 @@ void startServer()
 
     if (request->hasParam("ssid", true) && request->hasParam("password", true)) 
     {
-      interimWifi[0] = request->getParam("ssid", true)->value();
-      interimWifi[1] = request->getParam("password", true)->value();
+      g_interimWifi[0] = request->getParam("ssid", true)->value();
+      g_interimWifi[1] = request->getParam("password", true)->value();
 
       newConnectionRequest = true;
       connectionText = "Connecting to Wifi Network: " +interimWifi[0];
@@ -202,6 +202,7 @@ void setup() {
   parseWifi(readFile(LittleFS, "/ssid.txt"));
   WiFi.mode(WIFI_AP_STA);
   WiFi.setAutoReconnect(true);
+  WiFi.softAP("ESP" + WiFi.macAddress())
   wifiConnect(g_wifi);
   startServer();
 }
@@ -229,14 +230,14 @@ void loop()
     if(wifiConnect(interimWifi))
     {
       //if connection is succesful then saves details.
-      g_wifi[0] = interimWifi[0];
-      g_wifi[1] = interimWifi[1];
+      g_wifi[0] = g_interimWifi[0];
+      g_wifi[1] = g_interimWifi[1];
       writeFile(LittleFS, "/ssid.txt", (g_wifi[0] + "," + g_wifi[1]).c_str());
       connectionText = "Connected successfully to " + g_wifi[0];
     }
     else
     {
-      connectionText = "Failed to connect to " + interimWifi[0];
+      connectionText = "Failed to connect to " + g_interimWifi[0];
     }
     newConnectionRequest = false;
   }
