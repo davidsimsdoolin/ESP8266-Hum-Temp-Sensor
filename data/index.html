@@ -17,6 +17,7 @@
         max-width: 300px;
         margin: auto;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 2px solid #4c5caf;
     }
     label {
         display: block;
@@ -28,11 +29,11 @@
         margin-top: 5px;
         box-sizing: border-box;
     }
-    button {
+    .submit {
         margin-top: 15px;
         padding: 10px;
         width: 100%;
-        background-color: #4CAF50;
+        background-color: #4c5caf;
         color: white;
         border: none;
         border-radius: 4px;
@@ -43,6 +44,11 @@
         color: #333;
     }
 
+    .reload {
+        font-family: Lucida Sans Unicode;
+        cursor: pointer;
+    }
+
 
 </style>
 </head>
@@ -51,6 +57,7 @@
         <h2>Sensor Data</h2>
         <div id ="temperature">Temperature: </div>
         <div id ="humidity">Humidity: </div>
+        <span id ="reloadSensor" onclick="getSensorData()" class=reload>&#x21bb;</span>
     </form>
     <!--Wifi Settings Input-->
     <form id="wifiConfig">
@@ -59,19 +66,23 @@
         <select id="ssid">
             <option disabled selected>Loading...</option>
         </select>
+        <span id ="reloadSsid" onclick="loadNetworksDD()" class=reload>&#x21bb;</span>
 
 	    <label for="password">Password:</label>
         <input type="password" id="password" name="password" required />
 
-        <button type="submit">Connect</button>
+        <button class="submit" type="submit">Connect</button>
         <div id="wifiStatusMessage"></div>
         <div id="statusMessage"></div>
     </form>
     
 
 <script>
+
+    function loadNetworksDD()
+    {
         fetch('/networks')
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 const select = document.getElementById('ssid');
                 select.innerHTML = ''; // Clear existing options
@@ -85,11 +96,12 @@
             .catch(err => {
                 document.getElementById('statusMessage').textContent = "Failed to load networks: " + err;
             });
+    }
 
     function getSensorData()
     {
         fetch('/sensors')
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 document.getElementById('temperature').textContent = "Temperature: " + data.temperature + " °C";
                 document.getElementById('humidity').textContent = "Humidity: " + data.humidity + " %";
@@ -104,7 +116,7 @@
         fetch('/status', {
             method: 'POST'
         })
-        .then(response => response.text())
+        .then(res => res.text())
         .then(msg => {
             const wifiStatus = document.getElementById('wifiStatusMessage');
             if (msg === 'connected') {
@@ -128,6 +140,7 @@
         })
     }
 
+    //event listener for submit button for wifi details.
     document.getElementById('wifiConfig').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -156,12 +169,15 @@
         .catch(err => {document.getElementById('statusMessage').textContent = "connection Failed" + err;});
     });
 
+    //Initial run of functions
+    loadNetworksDD();
     checkWiFiStatus();
     getSensorData();
 
 
+    //Run functions at set intervals
     setInterval(checkWiFiStatus, 5000);
-    setInterval(getSensorData, 40000)
+    setInterval(getSensorData, 30000)
 
 </script>
 </body>
