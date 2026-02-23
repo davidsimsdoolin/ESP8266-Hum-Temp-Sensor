@@ -172,7 +172,7 @@ void startServer()
       g_interimWifi[1] = request->getParam("password", true)->value();
 
       newConnectionRequest = true;
-      connectionText = "Connecting to Wifi Network: " +interimWifi[0];
+      connectionText = "Connecting to Wifi Network: " + g_interimWifi[0];
     }
     request->send(200, "text/plain", connectionText);
   });
@@ -202,7 +202,7 @@ void setup() {
   parseWifi(readFile(LittleFS, "/ssid.txt"));
   WiFi.mode(WIFI_AP_STA);
   WiFi.setAutoReconnect(true);
-  WiFi.softAP("ESP" + WiFi.macAddress())
+  WiFi.softAP("ESP" + WiFi.macAddress());
   wifiConnect(g_wifi);
   startServer();
 }
@@ -211,11 +211,13 @@ void setup() {
 void loop() 
 {
 
+  //Checks is more than 10 seconds since last ssid scan, scans if over and updates.
   if (millis() - lastScanTime > 10000) 
   { 
     int n = WiFi.scanNetworks();
     String json = "[";
-    for (int i = 0; i < n && i < 20; i++) {
+    for (int i = 0; i < n && i < 20; i++) 
+    {
         if (i) json += ",";
         json += "\"" + WiFi.SSID(i) + "\"";
     }
@@ -227,7 +229,7 @@ void loop()
   //bool set by if html submitted ssid and password. If true tries to connect.
   if(newConnectionRequest)
   {
-    if(wifiConnect(interimWifi))
+    if(wifiConnect(g_interimWifi))
     {
       //if connection is succesful then saves details.
       g_wifi[0] = g_interimWifi[0];
@@ -241,6 +243,13 @@ void loop()
     }
     newConnectionRequest = false;
   }
+
+  if(WiFi.status() != WL_CONNECTED && g_wifi[0] != "") 
+  {
+    Serial.println("aaaa");
+    wifiConnect(g_wifi);
+  }
+
 
   display.clearDisplay();
   display.setTextColor(WHITE);
